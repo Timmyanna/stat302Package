@@ -2,7 +2,7 @@
 #'
 #' This function predict \code{body_mass_g} using covariates
 #'   \code{bill_length_mm}, \code{bill_depth_mm}, and \code{flipper_length_mm}.
-#'
+#' @imports randomForest
 #' @param k a integer number of folds
 #'
 #' @return a numeric with the cross-validation error
@@ -34,7 +34,7 @@ my_rf_cv <- function(k) {
     body_mass_test <- data_test$body_mass_g
 
     # build a random forest model with 100 trees
-    model <- randomForest(body_mass_g ~ bill_length_mm + bill_depth_mm + flipper_length_mm, data = data_train, ntree = 100)
+    model <- randomForest::randomForest(body_mass_g ~ bill_length_mm + bill_depth_mm + flipper_length_mm, data = data_train, ntree = 100)
 
     # predict the body mass based on the model
     pr <- predict(model, data_test[, -1])
