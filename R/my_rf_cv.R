@@ -27,7 +27,7 @@ my_rf_cv <- function(k) {
   #iterate through k folds
   for (i in 1:k) {
     # update the train data and test data
-    data_train <- penguins_df %>% dpylr::filter(fold != i)
+    data_train <- penguins_df %>% dplyr::filter(fold != i)
     data_test <- penguins_df %>% dplyr::filter(fold == i)
 
     # record the true body mass of the test data

@@ -12,7 +12,7 @@
 #'
 #' @examples
 #' ## Demonstrate a regression using my_gapminder dataset.
-#' my_lm(lifeExp ~ gdpPercap + gdpPercap, data = my_gapminder)
+#' my_lm(lifeExp ~ gdpPercap + continent, data = my_gapminder)
 #'
 #' @export
 my_lm <- function(formula, data) {

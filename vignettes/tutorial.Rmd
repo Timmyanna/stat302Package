@@ -1,8 +1,9 @@
 ---
 title: "Project 2: STAT 302 Package Tutorial"
+author: "Luoan Tang"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Project 2: STAT 302 Package Tutorial}
+  %\VignetteIndexEntry{stat302Package Tutorial}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,6 +15,162 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(stat302Package)
+## Introduction
+
+This package is the for Project2 of STAT 302 at UW which includes four functions I learned and wrote throughout this course. These functions includes my own version of student t test, linear models, k-nearest neighbor cross validation and random forest cross validation. These functions will perform different types of statistical inference and prediction. In this tutorial, I will demonstrate how to use each functions individually and explain each result.
+
+First we will need to install my package using:
+```{r, eval = FALSE}
+devtools::install_github("Timmyanna/stat302Package")
 ```
+
+Then load my package an other packages needed for this tutorial using:
+```{r, message = FALSE}
+library(stat302Package)
+library(ggplot2)
+library(randomForest)
+```
+
+### Tutorial for `my_t.test`
+First I will demonstrate how `my_t.test` works using the `lifeExp` data from `my_gapminder`.
+
+```{r}
+my_t.test(my_gapminder$lifeExp, "two.sided", 60)
+```
+
+In this student t test, the null hypothesis is the true mean of `lifeExp` is equal to 60. The alternative hypothesis is the true mean of `lifeExp` is not equal to 60. The test statistic is `r my_t.test(my_gapminder$lifeExp, "two.sided", 60)$test_stat`, the degree of freedom is `r my_t.test(my_gapminder$lifeExp, "two.sided", 60)$df` and the associated p-value is `r my_t.test(my_gapminder$lifeExp, "two.sided", 60)$p_val`. Given the alpha = 0.05, we fail to reject the null hypothesis. 
+
+```{r}
+my_t.test(my_gapminder$lifeExp, "less", 60)
+```
+
+In this student t test, the null hypothesis is the true mean of `lifeExp` is equal to 60. The alternative hypothesis is the true mean of `lifeExp` is less than 60. The test statistic is `r my_t.test(my_gapminder$lifeExp, "less", 60)$test_stat`, the degree of freedom is `r my_t.test(my_gapminder$lifeExp, "less", 60)$df` and the associated p-value is `r my_t.test(my_gapminder$lifeExp, "less", 60)$p_val`. Given the alpha = 0.05, we can reject the null hypothesis and accept the alternative hypothesis.
+
+```{r}
+my_t.test(my_gapminder$lifeExp, "greater", 60)
+```
+
+In this student t test, the null hypothesis is the true mean of `lifeExp` is equal to 60. The alternative hypothesis is the true mean of `lifeExp` is greater than 60. The test statistic is `r my_t.test(my_gapminder$lifeExp, "greater", 60)$test_stat`, the degree of freedom is `r my_t.test(my_gapminder$lifeExp, "greater", 60)$df` and the associated p-value is `r my_t.test(my_gapminder$lifeExp, "greater", 60)$p_val`. Given the alpha = 0.05, we fail to reject the null hypothesis. 
+
+### Tutorial for `my_lm`
+Next, I will demonstrate how `my_lm` works by build a linear regression model using `lifeExp` as response variable and `gdpPercap` and `continent` as explanatory variables.
+
+```{r, warning=FALSE}
+my_lm(lifeExp ~ gdpPercap + continent, data = my_gapminder)
+```
+
+The coefficient of `gdpPercap` is `r my_lm(lifeExp ~ gdpPercap + continent, data = my_gapminder)[2,1]`. This indicates how much `lifeExp` changes for every one unit change of `gdpPercap` while keeping other explanatory variables constant.
+
+The hypothesis test associated with the `gdpPercap` coefficient will be as following:
+
+Null hypothesis: the `gdpPercap` coefficient(slope) is equal to 0
+
+Alternative hypothesis: the `gdpPercap` coefficient(slope) is not equal to 0
+
+The p-value for this hypothesis test is `r my_lm(lifeExp ~ gdpPercap + continent, data = my_gapminder)[2,4]`. This is much smaller than given alpha = 0.5. So we reject the null hypothesis and state the `gdpPercap` coefficient(slope) is not equal to 0.
+
+```{r, warnings = FALSE}
+my_coef <- my_lm(lifeExp ~ gdpPercap + continent, data = my_gapminder)[,"Estimate"]
+my_matrix <- model.matrix(lifeExp ~ gdpPercap + continent, data = my_gapminder)
+y_hat <- my_matrix %*% as.matrix(my_coef)
+my_df <- data.frame("actual" = my_gapminder$lifeExp, "fitted" = y_hat, "continent" = my_gapminder$continent)
+
+ggplot(my_df, aes(x = actual, y = fitted)) +
+  geom_point(size = 0.1) +
+  geom_abline(slope = 1, intercept = 0, col = "red", lty = 2) +
+  labs(x = "Actual values", y = "Fitted values", title = "Actual vs. Fitted") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+I included the diagonal(slope = 1, intercept = 0) line in the plot because ideally, I want my fitted points equals my actual points. In this case, my model seems to have three subsections of performance. In the range 20-40 of actual value, I found these points are far from the diagonal line, so the the linear model doesn't do well on fitting these values. In the range 50-70 of actual value, the the linear model perform normally on fitting these values. In the range 50-70 of actual value, these points are close to the diagonal line, so the the linear model perform good on fitting these values.
+
+###Tutorial for `my_knn_cv` using `my_penguins`.\
+
+Next I will demonstrate how `my_knn_cv` works by predicting output class `species` using covariates `bill_length_mm`, `bill_depth_mm`, `flipper_length_mm`, and `body_mass_g`.
+
+```{r}
+# get training data
+penguins_train <- na.omit(my_penguins) %>% dplyr::select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g)
+# get true class
+penguins_cl <- as.character(na.omit(my_penguins)$species)
+
+training_mis_rate <- c()
+cv_errors <- c()
+
+set.seed(12)
+
+for (knn in 1:10) {
+  result <- my_knn_cv(penguins_train, penguins_cl, knn, 5)
+  train_cl <- result[1]
+  mis_rate <- sum(as.factor(penguins_cl) != unlist(train_cl)) / length(penguins_cl)
+  training_mis_rate <- append(training_mis_rate, mis_rate)
+  cv_errors <- append(cv_errors, result[2])
+}
+
+training_mis_rate
+cv_errors
+```
+
+Based on the training misclassification rates, I would choose knn = 1.  
+Based on the CV misclassification rates, I would choose knn = 1.
+
+In practice, I would choose knn = 10. Because for k-nearest neighbors algorithm, using knn = 1 will always give 0 classification error in the training set, because we use the single observation to classify itself. That's if knn is small, we have a high bias but a low variance for estimating test error. So, we include cross-validation to split the sample and make it give a prediction for a sample it has never seen. 
+
+### Tutorial for `my_rf_cv`
+
+Lastly, I will demonstrate how my 'my_rf_cv` works by predicting body_mass_g using covariates bill_length_mm, bill_depth_mm, and flipper_length_mm.
+
+```{r}
+# choose k = 2 and run 30 times
+cv_error_2 <- c()
+for (t in 1:30) {
+  result <- my_rf_cv(2)
+  cv_error_2 <- append(cv_error_2, result)
+}
+
+# choose k = 5 and run 30 times
+cv_error_5 <- c()
+for (t in 1:30) {
+  result <- my_rf_cv(5)
+  cv_error_5 <- append(cv_error_5, result)
+}
+
+# choose k = 10 and run 30 times
+cv_error_10 <- c()
+for (t in 1:30) {
+  result <- my_rf_cv(10)
+  cv_error_10 <- append(cv_error_10, result)
+}
+
+my_df <- data.frame(k = factor(rep(c("k = 2","k = 5", "k = 10"), each = 30)), cv_errors = c(cv_error_2, cv_error_5, cv_error_10))
+
+p <- ggplot(my_df, aes(x = k, y = cv_errors)) + geom_boxplot()
+p
+
+#create a table for mean and standard deviation of every groups of cv errors
+cv_table <- matrix(c(mean(cv_error_2), sd(cv_error_2), mean(cv_error_5), sd(cv_error_5), mean(cv_error_10), sd(cv_error_10)), ncol=2, byrow=TRUE)
+
+rownames(cv_table) <- c("k = 2","k = 5","k = 10")
+colnames(cv_table) <- c("mean","sd")
+cv_table <- as.table(cv_table)
+cv_table
+```
+
+From the table, I found that k = 2 has both highest mean and variance of cv error. k = 5 and k = 10 has similar mean of cv error, while k = 5 is higher in standard deviation. 
+From the box plot, I found k = 2 has largest box and median, which match thr result from table. k = 5 and k = 10 has similar box position and size, while k = 10 is denser than k = 5 and has lower median of cv errors.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
