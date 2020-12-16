@@ -2,15 +2,15 @@
 #'
 #' This function predict \code{body_mass_g} using covariates
 #'   \code{bill_length_mm}, \code{bill_depth_mm}, and \code{flipper_length_mm}.
-#' @imports randomForest
+#'
 #' @param k a integer number of folds
 #'
 #' @return a numeric with the cross-validation error
 #'
 #' @keywords prediction
 #'
-#' @example
-#' rf_cv_error <- my_rf_cv(5)
+#' @examples
+#' my_rf_cv(5)
 #'
 #' @export
 my_rf_cv <- function(k) {
@@ -27,8 +27,8 @@ my_rf_cv <- function(k) {
   #iterate through k folds
   for (i in 1:k) {
     # update the train data and test data
-    data_train <- penguins_df %>% filter(fold != i)
-    data_test <- penguins_df %>% filter(fold == i)
+    data_train <- penguins_df %>% dpylr::filter(fold != i)
+    data_test <- penguins_df %>% dplyr::filter(fold == i)
 
     # record the true body mass of the test data
     body_mass_test <- data_test$body_mass_g

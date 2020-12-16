@@ -16,4 +16,8 @@ a numeric with the cross-validation error
 This function predict \code{body_mass_g} using covariates
 \code{bill_length_mm}, \code{bill_depth_mm}, and \code{flipper_length_mm}.
 }
+\examples{
+my_rf_cv(5)
+
+}
 \keyword{prediction}
