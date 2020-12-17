@@ -3,6 +3,16 @@
   [![Codecov test coverage](https://codecov.io/gh/Timmyanna/stat302Package/branch/master/graph/badge.svg)](https://codecov.io/gh/Timmyanna/stat302Package?branch=master)
   <!-- badges: end -->
 
+## Installation
+
+To download the stat302Package package, use the code below.
+
+``` r
+# install.packages("devtools")
+devtools::install_github("Timmyanna/stat302Package")
+library(stat302Package)
+```
+
 ## Use
 
 The vignette demonstrates example usage of all main functions. You can see the vignette by using the following code (note that this requires a TeX installation to view properly):
