@@ -83,7 +83,7 @@ ggplot(my_df, aes(x = actual, y = fitted)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-I included the diagonal(slope = 1, intercept = 0) line in the plot because ideally, I want my fitted points equals my actual points. In this case, my model seems to have three subsections of performance. In the range 20-40 of actual value, I found these points are far from the diagonal line, so the the linear model doesn't do well on fitting these values. In the range 50-70 of actual value, the the linear model perform normally on fitting these values. In the range 50-70 of actual value, these points are close to the diagonal line, so the the linear model perform good on fitting these values.
+I included the diagonal(slope = 1, intercept = 0) line in the plot because, ideally, I want my fitted points equals my actual points under my linear model. In this case, my model seems to have three subsections of performance. In the range 20-40 of actual value, I found these points are far from the diagonal line, so the the linear model doesn't do well on fitting these values. In the range 50-70 of actual value, the the linear model perform normally on fitting these values. In the range 50-70 of actual value, these points are close to the diagonal line, so the the linear model perform good on fitting these values.
 
 ### Tutorial for `my_knn_cv` using `my_penguins`.
 
@@ -93,34 +93,32 @@ Next I will demonstrate how `my_knn_cv` works by predicting output class `specie
 # get training data
 penguins_train <- na.omit(my_penguins) %>% dplyr::select(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g)
 # get true class
-penguins_cl <- as.character(na.omit(my_penguins)$species)
+penguins_cl <- as.factor(na.omit(my_penguins)$species)
 
+# store training misclassification rate and the CV misclassification rate respectively
 training_mis_rate <- c()
-cv_errors <- c()
-
-# set seed for reproducibility
-set.seed(302)
+cv_mis_rate <- c()
 
 # iterate through different choices of knn
 for (knn in 1:10) {
   result <- my_knn_cv(penguins_train, penguins_cl, knn, 5)
   # record the predicted class
-  train_cl <- result[1]
-  # record the misclassification rate
-  mis_rate <- sum(as.factor(penguins_cl) != unlist(train_cl)) / length(penguins_cl)
-  training_mis_rate <- append(training_mis_rate, mis_rate)
-  # record the cv errors
-  cv_errors <- append(cv_errors, result[2])
+  training_cl <- result[1]
+  # record each training misclassification rate
+  rate <- sum(penguins_cl != unlist(training_cl)) / length(penguins_cl)
+  training_mis_rate <- append(training_mis_rate, rate)
+  # record each cv errors
+  cv_mis_rate <- append(cv_mis_rate, as.numeric(result[2]))
 }
 
 training_mis_rate
-cv_errors
+cv_mis_rate
 ```
 
-Based on the training misclassification rates, I would choose knn = 1.  
-Based on the CV misclassification rates, I would choose knn = 1.
+Based on the training misclassification rates, I would choose `k_nn` = 1.  
+Based on the CV misclassification rates, I would choose `k_nn` = 1. (Its cv error is the lowest, but it's overfitting. Maybe it's because penguins' species are easy to classify)
 
-In practice, I would choose knn = 10. Because for k-nearest neighbors algorithm, using knn = 1 will always give 0 classification error in the training set, because we use the single observation to classify itself. That's if knn is small, we have a high bias but a low variance for estimating test error. So, we include cross-validation to split the sample and make it give a prediction for a sample it has never seen. I tent to look for k shows a decrease (when increasing k) cross validation error. I found knn = 10 is at somewhat lower point for cv error.
+In practice, I would choose `k_nn` = 10. To choose which model(`k_nn`), we should consider which model has lower cross validation error. Because cross validation is set up in a way to evaluate the performance of model on data that was not used to train it. So it's testing how well the model generalize. If it predict well for new data, it has lower cv error. We're looking for such model in practice. In this case, the cross validation error tend to decrease from `k_nn` = 2 to `k_nn` = 10, so I though for `k_nn` = 10, the cv error is at a lower position. 
 
 ### Tutorial for `my_rf_cv`
 
@@ -167,8 +165,8 @@ cv_table <- as.table(cv_table)
 cv_table
 ```
 
-From the table, I found that k = 2 has both highest mean and variance of cv error. k = 5 and k = 10 has similar mean of cv error, while k = 5 is higher in standard deviation. 
-From the box plot, I found k = 2 has largest box and median, which match thr result from table. k = 5 and k = 10 has similar box position and size, while k = 10 is denser than k = 5 and has lower median of cv errors.
+From the table, I found that `k` = 2 has both highest mean and variance of cv error. `k` = 5 and `k` = 10 has similar mean of cv error, while k = 5 is higher in standard deviation. 
+From the box plot, I found `k` = 2 has largest box and median, which match the result from table. `k` = 5 and `k` = 10 has similar box position and size, while `k` = 10 is denser than `k` = 5 and has lower median of cv errors.
 
 
 
