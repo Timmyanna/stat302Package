@@ -85,7 +85,7 @@ ggplot(my_df, aes(x = actual, y = fitted)) +
 
 I included the diagonal(slope = 1, intercept = 0) line in the plot because ideally, I want my fitted points equals my actual points. In this case, my model seems to have three subsections of performance. In the range 20-40 of actual value, I found these points are far from the diagonal line, so the the linear model doesn't do well on fitting these values. In the range 50-70 of actual value, the the linear model perform normally on fitting these values. In the range 50-70 of actual value, these points are close to the diagonal line, so the the linear model perform good on fitting these values.
 
-###Tutorial for `my_knn_cv` using `my_penguins`.\
+### Tutorial for `my_knn_cv` using `my_penguins`.
 
 Next I will demonstrate how `my_knn_cv` works by predicting output class `species` using covariates `bill_length_mm`, `bill_depth_mm`, `flipper_length_mm`, and `body_mass_g`.
 
@@ -120,7 +120,7 @@ cv_errors
 Based on the training misclassification rates, I would choose knn = 1.  
 Based on the CV misclassification rates, I would choose knn = 1.
 
-In practice, I would choose knn = 10. Because for k-nearest neighbors algorithm, using knn = 1 will always give 0 classification error in the training set, because we use the single observation to classify itself. That's if knn is small, we have a high bias but a low variance for estimating test error. So, we include cross-validation to split the sample and make it give a prediction for a sample it has never seen. 
+In practice, I would choose knn = 10. Because for k-nearest neighbors algorithm, using knn = 1 will always give 0 classification error in the training set, because we use the single observation to classify itself. That's if knn is small, we have a high bias but a low variance for estimating test error. So, we include cross-validation to split the sample and make it give a prediction for a sample it has never seen. I tent to look for k shows a decrease (when increasing k) cross validation error. I found knn = 10 is at somewhat lower point for cv error.
 
 ### Tutorial for `my_rf_cv`
 
