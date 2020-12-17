@@ -75,6 +75,7 @@ my_matrix <- model.matrix(lifeExp ~ gdpPercap + continent, data = my_gapminder)
 y_hat <- my_matrix %*% as.matrix(my_coef)
 my_df <- data.frame("actual" = my_gapminder$lifeExp, "fitted" = y_hat, "continent" = my_gapminder$continent)
 
+# plot a point plot about "Actual" vs "Fitted" values
 ggplot(my_df, aes(x = actual, y = fitted)) +
   geom_point(size = 0.1) +
   geom_abline(slope = 1, intercept = 0, col = "red", lty = 2) +
@@ -97,13 +98,18 @@ penguins_cl <- as.character(na.omit(my_penguins)$species)
 training_mis_rate <- c()
 cv_errors <- c()
 
-set.seed(12)
+# set seed for reproducibility
+set.seed(302)
 
+# iterate through different choices of knn
 for (knn in 1:10) {
   result <- my_knn_cv(penguins_train, penguins_cl, knn, 5)
+  # record the predicted class
   train_cl <- result[1]
+  # record the misclassification rate
   mis_rate <- sum(as.factor(penguins_cl) != unlist(train_cl)) / length(penguins_cl)
   training_mis_rate <- append(training_mis_rate, mis_rate)
+  # record the cv errors
   cv_errors <- append(cv_errors, result[2])
 }
 
@@ -142,17 +148,22 @@ for (t in 1:30) {
   cv_error_10 <- append(cv_error_10, result)
 }
 
+# create data for plotting
 my_df <- data.frame(k = factor(rep(c("k = 2","k = 5", "k = 10"), each = 30)), cv_errors = c(cv_error_2, cv_error_5, cv_error_10))
 
+#generate a boxplot
 p <- ggplot(my_df, aes(x = k, y = cv_errors)) + geom_boxplot()
 p
 
-#create a table for mean and standard deviation of every groups of cv errors
+# create a matrix for mean and standard deviation of every groups of cv errors
 cv_table <- matrix(c(mean(cv_error_2), sd(cv_error_2), mean(cv_error_5), sd(cv_error_5), mean(cv_error_10), sd(cv_error_10)), ncol=2, byrow=TRUE)
 
+# rename the column name
 rownames(cv_table) <- c("k = 2","k = 5","k = 10")
 colnames(cv_table) <- c("mean","sd")
+# convert to table
 cv_table <- as.table(cv_table)
+# display
 cv_table
 ```
 
